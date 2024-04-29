@@ -7,10 +7,10 @@
  * Keywords: prime number, algorithm, benchmark, C#, Trial Division, Sieve of Eratosthenes, Dijkstra
  * Date: 25-04-2024
  */
-using static System.Text.Json.JsonSerializer;
-using System.Diagnostics;
-//custom Tuple to use as return type
-using BenchmarkResult = (long ElapsedTime, System.TimeSpan CpuTime, long MemoryUsage);
+using static System.Text.Json.JsonSerializer;   //used for writeline of all dict values in dijkstra2
+using System.Diagnostics;                       //used for stopwatch
+
+using BenchmarkResult = (long ElapsedTime, System.TimeSpan CpuTime, long MemoryUsage);  //custom Tuple to use as return type
 
 class Program
 {
@@ -18,13 +18,13 @@ class Program
     static void Main(string[] args)
     {
         //BENCHMARK SETUP
-        int _numberOfPrimes = 25_000_000;          //<---- change benchmark parameters
-        int _warmup_cycles = 2;                 //<---- change benchmark parameters
-        int _benchmark_cycles = 5;             //<---- change benchmark parameters
+        int _numberOfPrimes = 25_000_000;           //<---- change benchmark parameters (MAX VALUE HERE: 100_000_000 (10e7) due to current implementation using List<int> to contain results (max value 2_147_483_647))
+        int _warmup_cycles = 0;                     //<---- change benchmark parameters
+        int _benchmark_cycles = 1;                  //<---- change benchmark parameters
         Stopwatch _stopwatch = new();
-        string _folder = @"c:\repos\data\";     //<---- change to wanted destination folder (for .txt with benchmark data)
+        string _folder = @"c:\repos\data\";         //<---- change to wanted destination folder (for .txt with benchmark data)
 
-        //SystemInfo();                           //used to get Systeminfo printed in the Console App
+        //SystemInfo();                               //used to get Systeminfo printed in the Console App
 
         Console.WriteLine($"Configuration: No. of Primes: {_numberOfPrimes}, Warmup Cycles: {_warmup_cycles}, Benchmark Cycles: {_benchmark_cycles}\n");
 
@@ -32,31 +32,31 @@ class Program
         Console.WriteLine($"¤¤¤ WARMUP STARTED ¤¤¤\n");                                                             //console feedback for user
         //_ = BenchmarkLoop(_warmup_cycles, _numberOfPrimes, _stopwatch, SieveOfEratosthenes);
         //_ = BenchmarkLoop(_warmup_cycles, _numberOfPrimes, _stopwatch, TrialDivision);
-        _ = BenchmarkLoop(_warmup_cycles, _numberOfPrimes, _stopwatch, Dijkstra);
-        //_ = BenchmarkLoop(_warmup_cycles, _numberOfPrimes, _stopwatch, Dijkstra2);
+        //_ = BenchmarkLoop(_warmup_cycles, _numberOfPrimes, _stopwatch, Dijkstra);
+        _ = BenchmarkLoop(_warmup_cycles, _numberOfPrimes, _stopwatch, Dijkstra2);
         Console.WriteLine($"¤¤¤ WARMUP FINISHED ¤¤¤\n");                                                            //console feedback for user
 
         //RUNNING BENCHMARK(S)
         Console.WriteLine($"¤¤¤ BENCHMARK STARTED ¤¤¤\n");                                                          //console feedback for user
         //var metrics_for_Sieve = BenchmarkLoop(_benchmark_cycles, _numberOfPrimes, _stopwatch, SieveOfEratosthenes);
         //var metrics_for_Trial = BenchmarkLoop(_benchmark_cycles, _numberOfPrimes, _stopwatch, TrialDivision);
-        var metrics_for_Dijkstra = BenchmarkLoop(_benchmark_cycles, _numberOfPrimes, _stopwatch, Dijkstra);
-        //var metrics_for_Dijkstra2 = BenchmarkLoop(_benchmark_cycles, _numberOfPrimes, _stopwatch, Dijkstra2);
+        //var metrics_for_Dijkstra = BenchmarkLoop(_benchmark_cycles, _numberOfPrimes, _stopwatch, Dijkstra);
+        var metrics_for_Dijkstra2 = BenchmarkLoop(_benchmark_cycles, _numberOfPrimes, _stopwatch, Dijkstra2);
         Console.WriteLine($"¤¤¤ BENCHMARK FINISHED ¤¤¤\n");                                                         //console feedback for user
 
         //PRINT METRICS FROM BENCHMARK(S)
         Console.WriteLine($"¤¤¤ BENCHMARK RESULTS START ¤¤¤\n");                                                    //console feedback for user
         //PrintBenchmark("Sieve of Eratosthenes", metrics_for_Sieve);
         //PrintBenchmark("Trial Division", metrics_for_Trial);
-        PrintBenchmark("Dijkstra", metrics_for_Dijkstra);
-        //PrintBenchmark("Dijkstra2", metrics_for_Dijkstra2);
+        //PrintBenchmark("Dijkstra", metrics_for_Dijkstra);
+        PrintBenchmark("Dijkstra2", metrics_for_Dijkstra2);
         Console.WriteLine($"¤¤¤ BENCHMARK RESULTS END ¤¤¤\n");                                                      //console feedback for user
 
         //SAVE BENCHMARKS TO FILE
         //SaveToFile("Sieve", _folder, _numberOfPrimes, _warmup_cycles, _benchmark_cycles, metrics_for_Sieve);
         //SaveToFile("Trial", _folder, _numberOfPrimes, _warmup_cycles, _benchmark_cycles, metrics_for_Trial);
-        SaveToFile("Dijkstra", _folder, _numberOfPrimes, _warmup_cycles, _benchmark_cycles, metrics_for_Dijkstra);
-        //SaveToFile("Dijkstra2", _folder, _numberOfPrimes, _warmup_cycles, _benchmark_cycles, metrics_for_Dijkstra2);
+        //SaveToFile("Dijkstra", _folder, _numberOfPrimes, _warmup_cycles, _benchmark_cycles, metrics_for_Dijkstra);
+        SaveToFile("Dijkstra2", _folder, _numberOfPrimes, _warmup_cycles, _benchmark_cycles, metrics_for_Dijkstra2);
 
         Console.ReadLine();                                                                                         //to prevent "press key to close" in console when finished
     }
@@ -142,7 +142,7 @@ class Program
             Console.WriteLine($"File saved. {fullName}");
         }
     }
-    static void SystemInfo() //from "Microbenchmarks in Java and C#" by Peter Sestoft @ Version 0.8.0 of 2015-09-16
+    static void SystemInfo()                                                                //from "Microbenchmarks in Java and C#" by Peter Sestoft @ Version 0.8.0 of 2015-09-16
     {
         Console.WriteLine("# OS {0}",
         Environment.OSVersion.VersionString);
@@ -193,7 +193,7 @@ class Program
     }
 
     //SIEVE OF ERATOSTHENES
-    public static List<int> SieveOfEratosthenes(int numberOfPrimes)     // int size [-2,147,483,648 to 2,147,483,647]
+    public static List<int> SieveOfEratosthenes(int numberOfPrimes)                         // int size [-2,147,483,648 to 2,147,483,647]
     {
         //bool array default value(s) = FALSE
         bool[] sieve = new bool[numberOfPrimes * 20];                   // array size based on https://t5k.org/howmany.html#better (good up to approx 50e10^6 (50 millions) prime numbers) (numbers reach about 1e9)
@@ -217,7 +217,7 @@ class Program
     }
 
     //DIJKSTRA
-    public static List<int> Dijkstra(int numberOfPrimes)                                // int size [-2,147,483,648 to 2,147,483,647]
+    public static List<int> Dijkstra(int numberOfPrimes)                                    // int size [-2,147,483,648 to 2,147,483,647]
     {
         List<int> primes = new(numberOfPrimes) { 2 };                                   //assumption / lemma? adding 2 to prime list to avoid checking all even candidates
         int sqrtNumberOfPrimes = (int)Math.Floor(Math.Sqrt((double)numberOfPrimes));    //assumption / lemma?
@@ -251,28 +251,28 @@ class Program
     }
 
     //DIJKSTRA 2
-    public static List<int> Dijkstra2(int numberOfPrimes)                                // int size [-2,147,483,648 to 2,147,483,647]
+    public static List<int> Dijkstra2(int numberOfPrimes)                                   // int size [-2,147,483,648 to 2,147,483,647]
     {
-        List<int> primes = new(numberOfPrimes) { 2 };                                   //assumption / lemma? adding 2 to prime list to avoid checking all even candidates
-        int maxMultiple = (int)Math.Ceiling(numberOfPrimes * (Math.Log(numberOfPrimes) + Math.Log(Math.Log(numberOfPrimes)) - 1 + (1.8 * Math.Log(Math.Log(numberOfPrimes)) / Math.Log(numberOfPrimes))));
+        List<int> primes = new(numberOfPrimes) { 2 };                                       //assumption / lemma? adding 2 to prime list to avoid checking all even candidates
+        int maxCandidate = (int)Math.Ceiling(numberOfPrimes * (Math.Log(numberOfPrimes) + Math.Log(Math.Log(numberOfPrimes)) - 1 + (1.8 * Math.Log(Math.Log(numberOfPrimes)) / Math.Log(numberOfPrimes))));      //https://t5k.org/howmany.html#2
         //Console.WriteLine($"estimated max prime: {maxMultiple}");
 
-        int sqrtMaxEstimatedPrime = (int)Math.Ceiling(Math.Sqrt((double)maxMultiple));
+        int sqrtMaxEstimatedPrime = (int)Math.Ceiling(Math.Sqrt((double)maxCandidate));     //no need to check divisors further than up to square root of number in question
         //Console.WriteLine($"sqrt of estimated max prime: {sqrtMaxEstimatedPrime}");
 
-        int estCap = (int)Math.Ceiling(sqrtMaxEstimatedPrime / (Math.Log(sqrtMaxEstimatedPrime) - 1) + (3* Math.Log(sqrtMaxEstimatedPrime)));
+        int estCap = (int)Math.Ceiling(sqrtMaxEstimatedPrime / (Math.Log(sqrtMaxEstimatedPrime) - 1) + (4 * Math.Log(sqrtMaxEstimatedPrime)));   //trial and error inspired by formula for maxCandidate variable above (currently sufficient up to a total of 100_000_000 primes)
         Dictionary<int, int> multiples = new(estCap);
         //Console.WriteLine($"Dictionary capacity set to {estCap}\n");
 
         for (int candidate = 3; primes.Count < numberOfPrimes; candidate += 2)
         {
-            if (multiples.TryGetValue(candidate, out int increment))                     //TRUE if the candidate exists as a multiple (key)
+            if (multiples.TryGetValue(candidate, out int increment))                        //TRUE if the candidate exists as a multiple (key) meaning it's a composite number (NOT prime)
             {
                 multiples.Remove(candidate);
-                int newMultiple = candidate + increment;                                //remove old multiple (key+value), create new key by increasing multiple (candidate) by increment (value)
+                int newMultiple = candidate + increment;                                    //remove old multiple (key+value), create new key by increasing multiple (candidate) by increment value
                 while (multiples.TryGetValue(newMultiple, out int _))
-                {                  //check if new multiple already exist (for other prime number)
-                    newMultiple += increment;                                           //if TRUE then add increment and try again
+                {                                                                           //checks if new multiple already exist (for other prime number)
+                    newMultiple += increment;                                               //if TRUE then add increment and try again
                 }
                 multiples.TryAdd(newMultiple, increment);
                 //Console.WriteLine($"MULTIPLE Old Key: {candidate}, New Key: {newMultiple}, Value: {increment} (Prime: {increment / 2})");
@@ -280,16 +280,16 @@ class Program
             else
             {
                 primes.Add(candidate);
-                //Console.WriteLine($"New prime added to list: {candidate}");             //<---- change - SPAM (use LOW VALUE for _numberOfPrimes)
+                //Console.WriteLine($"New prime added to list: {candidate}");               //<---- change - SPAM (use LOW VALUE for _numberOfPrimes)
                 if (candidate < sqrtMaxEstimatedPrime)
                 {
-                    multiples.TryAdd(candidate * candidate, candidate + candidate);     //multiple = square of candidate ; increment is always double the original prime number
+                    multiples.TryAdd(candidate * candidate, candidate + candidate);         //multiple = square of candidate ; increment is always double the original prime number
                 }
             }
         }
-        //Console.WriteLine($"Dict Count: {multiples.Count}");
-        //Console.WriteLine(Serialize(multiples.ToList()));
-        //Console.WriteLine($"\nLast prime in list is: {primes.Last().ToString()}");
+        //Console.WriteLine($"Dict Count: {multiples.Count}");                              //number of entries in the dictionary
+        //Console.WriteLine(Serialize(multiples.ToList()));                                 //all entries in the dictionary
+        //Console.WriteLine($"\nLast prime in list is: {primes.Last().ToString()}");        //last (n'th) prime in the list
         return primes;
     }
     #endregion //ALGORITHM METHODS
