@@ -19,8 +19,8 @@ class Program
     {
         //BENCHMARK SETUP
         int _numberOfPrimes = 25_000_000;          //<---- change benchmark parameters
-        int _warmup_cycles = 0;                 //<---- change benchmark parameters
-        int _benchmark_cycles = 1;             //<---- change benchmark parameters
+        int _warmup_cycles = 2;                 //<---- change benchmark parameters
+        int _benchmark_cycles = 5;             //<---- change benchmark parameters
         Stopwatch _stopwatch = new();
         string _folder = @"c:\repos\data\";     //<---- change to wanted destination folder (for .txt with benchmark data)
 
@@ -32,14 +32,16 @@ class Program
         Console.WriteLine($"¤¤¤ WARMUP STARTED ¤¤¤\n");                                                             //console feedback for user
         //_ = BenchmarkLoop(_warmup_cycles, _numberOfPrimes, _stopwatch, SieveOfEratosthenes);
         //_ = BenchmarkLoop(_warmup_cycles, _numberOfPrimes, _stopwatch, TrialDivision);
-        _ = BenchmarkLoop(_warmup_cycles, _numberOfPrimes, _stopwatch, Dijkstra2);
+        _ = BenchmarkLoop(_warmup_cycles, _numberOfPrimes, _stopwatch, Dijkstra);
+        //_ = BenchmarkLoop(_warmup_cycles, _numberOfPrimes, _stopwatch, Dijkstra2);
         Console.WriteLine($"¤¤¤ WARMUP FINISHED ¤¤¤\n");                                                            //console feedback for user
 
         //RUNNING BENCHMARK(S)
         Console.WriteLine($"¤¤¤ BENCHMARK STARTED ¤¤¤\n");                                                          //console feedback for user
         //var metrics_for_Sieve = BenchmarkLoop(_benchmark_cycles, _numberOfPrimes, _stopwatch, SieveOfEratosthenes);
         //var metrics_for_Trial = BenchmarkLoop(_benchmark_cycles, _numberOfPrimes, _stopwatch, TrialDivision);
-        var metrics_for_Dijkstra = BenchmarkLoop(_benchmark_cycles, _numberOfPrimes, _stopwatch, Dijkstra2);
+        var metrics_for_Dijkstra = BenchmarkLoop(_benchmark_cycles, _numberOfPrimes, _stopwatch, Dijkstra);
+        //var metrics_for_Dijkstra2 = BenchmarkLoop(_benchmark_cycles, _numberOfPrimes, _stopwatch, Dijkstra2);
         Console.WriteLine($"¤¤¤ BENCHMARK FINISHED ¤¤¤\n");                                                         //console feedback for user
 
         //PRINT METRICS FROM BENCHMARK(S)
@@ -47,12 +49,14 @@ class Program
         //PrintBenchmark("Sieve of Eratosthenes", metrics_for_Sieve);
         //PrintBenchmark("Trial Division", metrics_for_Trial);
         PrintBenchmark("Dijkstra", metrics_for_Dijkstra);
+        //PrintBenchmark("Dijkstra2", metrics_for_Dijkstra2);
         Console.WriteLine($"¤¤¤ BENCHMARK RESULTS END ¤¤¤\n");                                                      //console feedback for user
-        
+
         //SAVE BENCHMARKS TO FILE
         //SaveToFile("Sieve", _folder, _numberOfPrimes, _warmup_cycles, _benchmark_cycles, metrics_for_Sieve);
         //SaveToFile("Trial", _folder, _numberOfPrimes, _warmup_cycles, _benchmark_cycles, metrics_for_Trial);
         SaveToFile("Dijkstra", _folder, _numberOfPrimes, _warmup_cycles, _benchmark_cycles, metrics_for_Dijkstra);
+        //SaveToFile("Dijkstra2", _folder, _numberOfPrimes, _warmup_cycles, _benchmark_cycles, metrics_for_Dijkstra2);
 
         Console.ReadLine();                                                                                         //to prevent "press key to close" in console when finished
     }
@@ -89,7 +93,7 @@ class Program
         Console.WriteLine($"Running {cycles} Cycles... ");              //console feedback for user
         for (int i = 1; i <= cycles; i++)
         {
-            //Console.Write($"#{i} ");                                    //console feedback for user
+            Console.Write($"#{i} ");                                    //console feedback for user
 
             GC.Collect();
             stopwatch.Reset();
@@ -228,7 +232,7 @@ class Program
                 while (multiples.TryGetValue(newMultiple, out int _))
                 {                  //check if new multiple already exist (for other prime number)
                     newMultiple += increment;                                           //if TRUE then add increment and try again
-                    Console.WriteLine($"old mult (key): {candidate}, new mult (key): {newMultiple}, increment (value): {increment}");
+                    //Console.WriteLine($"old mult (key): {candidate}, new mult (key): {newMultiple}, increment (value): {increment}");
                 }
                 multiples.TryAdd(newMultiple, increment);
                 //Console.WriteLine($"old mult (key): {candidate}, new mult (key): {newMultiple}, increment (value): {increment}");   //<---- change - SPAM (use LOW VALUE for _numberOfPrimes)
@@ -250,15 +254,15 @@ class Program
     public static List<int> Dijkstra2(int numberOfPrimes)                                // int size [-2,147,483,648 to 2,147,483,647]
     {
         List<int> primes = new(numberOfPrimes) { 2 };                                   //assumption / lemma? adding 2 to prime list to avoid checking all even candidates
-        var maxMultiple = Math.Ceiling(numberOfPrimes * (Math.Log(numberOfPrimes) + Math.Log(Math.Log(numberOfPrimes)) - 1 + (1.8 * Math.Log(Math.Log(numberOfPrimes)) / Math.Log(numberOfPrimes))));
-        Console.WriteLine($"estimated max prime: {maxMultiple}");
+        int maxMultiple = (int)Math.Ceiling(numberOfPrimes * (Math.Log(numberOfPrimes) + Math.Log(Math.Log(numberOfPrimes)) - 1 + (1.8 * Math.Log(Math.Log(numberOfPrimes)) / Math.Log(numberOfPrimes))));
+        //Console.WriteLine($"estimated max prime: {maxMultiple}");
 
         int sqrtMaxEstimatedPrime = (int)Math.Ceiling(Math.Sqrt((double)maxMultiple));
-        Console.WriteLine($"sqrt of estimated max prime: {sqrtMaxEstimatedPrime}");
+        //Console.WriteLine($"sqrt of estimated max prime: {sqrtMaxEstimatedPrime}");
 
         int estCap = (int)Math.Ceiling(sqrtMaxEstimatedPrime / (Math.Log(sqrtMaxEstimatedPrime) - 1) + (3* Math.Log(sqrtMaxEstimatedPrime)));
         Dictionary<int, int> multiples = new(estCap);
-        Console.WriteLine($"Dictionary capacity set to {estCap}\n");
+        //Console.WriteLine($"Dictionary capacity set to {estCap}\n");
 
         for (int candidate = 3; primes.Count < numberOfPrimes; candidate += 2)
         {
@@ -277,15 +281,15 @@ class Program
             {
                 primes.Add(candidate);
                 //Console.WriteLine($"New prime added to list: {candidate}");             //<---- change - SPAM (use LOW VALUE for _numberOfPrimes)
-                if (candidate <= sqrtMaxEstimatedPrime)
+                if (candidate < sqrtMaxEstimatedPrime)
                 {
                     multiples.TryAdd(candidate * candidate, candidate + candidate);     //multiple = square of candidate ; increment is always double the original prime number
                 }
             }
         }
-        Console.WriteLine($"Dict Count: {multiples.Count}");
+        //Console.WriteLine($"Dict Count: {multiples.Count}");
         //Console.WriteLine(Serialize(multiples.ToList()));
-        Console.WriteLine($"\nLast prime in list is: {primes.Last().ToString()}");
+        //Console.WriteLine($"\nLast prime in list is: {primes.Last().ToString()}");
         return primes;
     }
     #endregion //ALGORITHM METHODS
