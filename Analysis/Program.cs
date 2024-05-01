@@ -18,7 +18,7 @@ class Program
     static void Main(string[] args)
     {
         //BENCHMARK SETUP
-        int _numberOfPrimes = 600_000_000;           //<---- change benchmark parameters (MAX VALUE HERE: 100_000_000 (10e7) due to current implementation using List<int> to contain results (max value 2_147_483_647))
+        int _numberOfPrimes = 1_000_000_000;           //<---- change benchmark parameters (MAX VALUE TESTED: (16GB RAM LAPTOP) 600_000_000 (6*1e8) & (32GB RAM PC) 1_000_000_000 (1e9) using integral type "ulong")
         int _warmup_cycles = 0;                     //<---- change benchmark parameters
         int _benchmark_cycles = 1;                  //<---- change benchmark parameters
         Stopwatch _stopwatch = new();
@@ -251,19 +251,19 @@ class Program
     }
 
     //DIJKSTRA 2
-    public static List<ulong> Dijkstra2(int numberOfPrimes)                                   // int size [-2,147,483,648 to 2,147,483,647]
+    public static List<ulong> Dijkstra2(int numberOfPrimes)                                   // ulong maximum value 18_446_744_073_709_551_615
     {
         List<ulong> primes = new(numberOfPrimes) { 2 };                                       //assumption / lemma? adding 2 to prime list to avoid checking all even candidates
         double maxCandidate = numberOfPrimes * (Math.Log(numberOfPrimes) + Math.Log(Math.Log(numberOfPrimes)) - 1 + (1.8 * Math.Log(Math.Log(numberOfPrimes)) / Math.Log(numberOfPrimes)));      //https://t5k.org/howmany.html#2
-        //Console.WriteLine($"estimated max prime: {maxMultiple}");
+        Console.WriteLine($"estimated max prime: {maxCandidate}");
 
         ulong sqrtMaxEstimatedPrime = (ulong)Math.Ceiling(Math.Sqrt((double)maxCandidate));     //no need to check divisors further than up to square root of number in question
         //Console.WriteLine($"sqrt of estimated max prime: {sqrtMaxEstimatedPrime}");
 
-        //int estCap = (int)Math.Ceiling(sqrtMaxEstimatedPrime / (Math.Log(sqrtMaxEstimatedPrime) - 1) + (4 * Math.Log(sqrtMaxEstimatedPrime)));   //trial and error inspired by formula for maxCandidate variable above (currently sufficient up to a total of 100_000_000 primes)
-        //Dictionary<ulong, ulong> multiples = new(estCap);
-        Dictionary<ulong, ulong> multiples = [];
-        //Console.WriteLine($"Dictionary capacity set to {estCap}\n");
+        int estCap = (int)Math.Ceiling(sqrtMaxEstimatedPrime / (Math.Log(sqrtMaxEstimatedPrime) - 1) + (4 * Math.Log(sqrtMaxEstimatedPrime)));   //trial and error inspired by formula for maxCandidate variable above (currently sufficient up to a total of 100_000_000 (1e8) primes)
+        Dictionary<ulong, ulong> multiples = new(estCap);
+        //Dictionary<ulong, ulong> multiples = [];
+        Console.WriteLine($"Dictionary capacity set to {estCap}\n");
 
         for (ulong candidate = 3; primes.Count < numberOfPrimes; candidate += 2)
         {
